@@ -138,8 +138,8 @@ func main() {
 		}
 
 		// Print the grid
-		fmt.Println("Snake at", snake.head.Vec2)
-		// go debugPrintGrid(grid)
+		Log().String("Head", snake.head.Vec2.String()).Msg("Position")
+		go debugPrintGrid(grid)
 	}
 }
 

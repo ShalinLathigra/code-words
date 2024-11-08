@@ -37,7 +37,7 @@ func createWriter(key string, fileName string) (*os.File, *bufio.Writer) {
 		panic("Cannot init with empty log file name")
 	}
 	os.MkdirAll(fmt.Sprintf("%s%s", LOG_FILE_PATH, key), os.ModePerm)
-	if file, err := os.Create(fmt.Sprintf("%s%s/%s", LOG_FILE_PATH, key, fileName)); err != nil {
+	if file, err := os.OpenFile(fmt.Sprintf("%s%s/%s", LOG_FILE_PATH, key, fileName), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644); err != nil {
 		panic(err)
 	} else {
 		return file, bufio.NewWriter(file)
@@ -98,10 +98,9 @@ func (lb *LogBuilder) appendBytes(chunk []byte, len int) {
 }
 
 func (lb *LogBuilder) logLine(chunk []byte, len int) {
-	if nn, err := lb.writer.Write(chunk[0:len]); err != nil {
+	if _, err := lb.writer.Write(chunk[0:len]); err != nil {
 		panic(err)
 	} else {
-		fmt.Printf("Writing (%d) bytes: (%d) %s", nn, len, chunk)
 		if err := lb.writer.Flush(); err != nil {
 			panic(err)
 		}
