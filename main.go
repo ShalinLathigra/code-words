@@ -5,6 +5,7 @@ import (
 	"slices"
 	"time"
 
+	"sl.com/log"
 	"sl.com/math"
 	"sl.com/render"
 )
@@ -35,6 +36,9 @@ type Snake struct {
 	tail *SnakeCell
 	dir  math.Vec2
 }
+
+func Log() *log.LogBuilder     { return log.CreateLogger("main") }
+func TestLog() *log.LogBuilder { return log.CreateLogger("test") }
 
 func NewGrid(size math.Vec2) (grid Grid) {
 	if size.X <= 0 || size.Y <= 0 {
@@ -94,6 +98,9 @@ func CreateSnake(grid Grid, pos math.Vec2, len uint) Snake {
 }
 
 func main() {
+	defer log.Clean()
+	Log().String("key", "Value").Msg("Hello Log World")
+	TestLog().String("key", "Value").Msg("Hello Log Test")
 	var delta int64
 	lastTime := time.Now()
 	render.Init()
