@@ -52,6 +52,11 @@ func Contains(rect Rect, point Vec2) bool {
 	return point.X >= min.X && point.X < max.X && point.Y >= min.Y && point.Y < max.Y
 }
 
+func VecContains(area Vec2, point Vec2) bool {
+	return point.X >= 0 && point.X < area.X && point.Y >= 0 && point.Y < area.Y
+}
+
+// inter.X,Y is alwyas relative to rect. If there is total overlap, it'll be at 0,0
 func Overlap(rect Rect, other Rect) (inter Rect, ok bool) {
 	minR, maxR := rect.Vec2, Add(rect.Vec2, rect.Size)
 	minO, maxO := other.Vec2, Add(other.Vec2, other.Size)

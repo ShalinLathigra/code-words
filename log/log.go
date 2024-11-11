@@ -30,6 +30,8 @@ type LogBuilder struct {
 
 var loggers = make(map[string]*LogBuilder)
 
+var allLogger = CreateLogger("all")
+
 var startTime = time.Now()
 
 func createWriter(key string, fileName string) (*os.File, *bufio.Writer) {
@@ -71,11 +73,36 @@ func (lb *LogBuilder) String(key string, val string) *LogBuilder {
 	return lb
 }
 
+func (lb *LogBuilder) Bool(key string, val bool) *LogBuilder {
+	lb.appendKey(key)
+	if val {
+		lb.appendBytes([]byte("true"), 4)
+	} else {
+		lb.appendBytes([]byte("false"), 5)
+	}
+	return lb
+}
+
+func (lb *LogBuilder) Int(key string, val int) *LogBuilder {
+	lb.appendKey(key)
+	msg := []byte(fmt.Sprintf("%d", val))
+	lb.appendBytes(msg, len(msg))
+	return lb
+}
+
+func (lb *LogBuilder) Any(key string, val any) *LogBuilder {
+	lb.appendKey(key)
+	msg := []byte(fmt.Sprintf("%v", val))
+	lb.appendBytes(msg, len(msg))
+	return lb
+}
+
 func (lb *LogBuilder) Msg(msg string) {
 	lb.String("msg", msg)
 	lb.appendBytes([]byte("}\n"), 2)
 	lb.length += 2
 	lb.logLine(lb.bytes, lb.length)
+	allLogger.logLine(lb.bytes, lb.length)
 	lb.length = 0
 }
 
