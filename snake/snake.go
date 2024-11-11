@@ -54,7 +54,7 @@ func NewGridFrame(rect math.Rect) GridFrame {
 	if rect.Size.X <= 0 || rect.Size.Y <= 0 {
 		panic("instancing a grid with no size")
 	}
-	gridRect, ok := math.Shrink(rect, 1)
+	gridRect, ok := math.Shrink(rect, math.One)
 	if !ok {
 		panic(fmt.Errorf("failed to shrink rect: %s", rect))
 	}
@@ -121,8 +121,8 @@ func setTile(grid *Grid, at math.Vec2, state byte) {
 var grid GridFrame
 var snake Snake
 
-func Init(inset int) {
-	rect, ok := math.Shrink(math.Rect{Size: render.Root.Aabb.Size}, inset)
+func Init(insets math.Vec2) {
+	rect, ok := math.Shrink(math.Rect{Size: render.Root.Aabb.Size}, insets)
 	if !ok {
 		panic("game area too small")
 	}
@@ -149,4 +149,17 @@ func Tick() bool {
 	}
 	grid.UpdateBuffer()
 	return true
+}
+
+func HandleInputByte(b byte) {
+	switch b {
+	case 65:
+		snake.dir = math.Up
+	case 66:
+		snake.dir = math.Down
+	case 67:
+		snake.dir = math.Right
+	case 68:
+		snake.dir = math.Left
+	}
 }

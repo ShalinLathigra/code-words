@@ -1,6 +1,8 @@
 package math
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Vec2 struct {
 	X int
@@ -11,6 +13,7 @@ var Left = Vec2{-1, 0}
 var Right = Vec2{1, 0}
 var Up = Vec2{0, -1}
 var Down = Vec2{0, 1}
+var One = Vec2{1, 1}
 
 func (v Vec2) String() string {
 	return fmt.Sprintf("(%d,%d)", v.X, v.Y)
@@ -22,6 +25,10 @@ func Add(a Vec2, b Vec2) Vec2 {
 
 func Subtract(a Vec2, b Vec2) Vec2 {
 	return Vec2{a.X - b.X, a.Y - b.Y}
+}
+
+func Scale(a Vec2, b int) Vec2 {
+	return Vec2{a.X * b, a.Y * b}
 }
 
 func Dot(a Vec2, b Vec2) int {
@@ -37,13 +44,13 @@ func (r Rect) String() string {
 	return fmt.Sprintf("%s*%s", r.Vec2, r.Size)
 }
 
-func Shrink(rect Rect, skin_width int) (ret Rect, ok bool) {
-	if skin_width*2 >= rect.Size.X || skin_width*2 >= rect.Size.Y {
+func Shrink(rect Rect, skinWidth Vec2) (ret Rect, ok bool) {
+	if skinWidth.X*2 >= rect.Size.X || skinWidth.Y*2 >= rect.Size.Y {
 		return Rect{}, false
 	}
 	ok = true
-	ret.Vec2 = Add(rect.Vec2, Vec2{skin_width, skin_width})
-	ret.Size = Add(rect.Size, Vec2{-2 * skin_width, -2 * skin_width})
+	ret.Vec2 = Add(rect.Vec2, skinWidth)
+	ret.Size = Add(rect.Size, Scale(skinWidth, -2))
 	return
 }
 

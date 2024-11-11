@@ -142,19 +142,19 @@ func makePatternedFrameBuffer(size math.Vec2) []byte {
 		for x := range size.X {
 			i = x + size.X*y
 			if x == 0 || x == size.X-1 {
-				if y == 0 || y == size.Y-1 || y%3 == 0 {
+				if y == 0 || y == size.Y-1 || y%1 == 0 {
 					ret[i] = '+'
 				} else {
 					ret[i] = '|'
 				}
 			} else if y == 0 {
-				if x%5 == 0 {
+				if x%2 == 0 {
 					ret[i] = '+'
 				} else {
 					ret[i] = '-'
 				}
 			} else if y == size.Y-1 {
-				if x%5 == 0 {
+				if x%2 == 0 {
 					ret[i] = '+'
 				} else {
 					ret[i] = '='

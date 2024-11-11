@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"sl.com/log"
+	"sl.com/math"
 	"sl.com/render"
 	game "sl.com/snake"
 	"sl.com/terminal"
@@ -13,6 +14,10 @@ func Log() *log.LogBuilder { return log.CreateLogger("main") }
 
 var frame int = 0
 
+const (
+	FPS int64 = 20
+)
+
 func main() {
 	defer render.Clean()
 	defer terminal.Clean()
@@ -21,7 +26,7 @@ func main() {
 	lastTime := time.Now()
 	terminal.Init() // must happen first
 	render.Init()
-	game.Init(6)
+	game.Init(math.Vec2{24, 3})
 
 	// next step, add contextual printing. Create "BufferedFrame" and "GridFrame", BufferedFrame is just a region and a pre-programmed byte Buffer, GridFrame is a region in which
 	// Original frame can be set to use the fancy background and such
@@ -31,10 +36,14 @@ func main() {
 
 	for {
 		delta = time.Since(lastTime).Milliseconds()
-		if delta < 1000/24 {
+		if delta < 1000/FPS {
 			continue
 		}
 		lastTime = time.Now()
+		input, ok := terminal.ReadInput()
+		if ok {
+			game.HandleInputByte(input)
+		}
 		if !game.Tick() {
 			Log().Msg("Exiting Game")
 			return

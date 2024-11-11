@@ -33,15 +33,62 @@ func Init() {
 	}
 	clearDebugLineBuffer = slices.Repeat([]byte{' '}, Size.X)
 	terminal = term.NewTerminal(os.Stdout, "")
-	go ReadInput()
+	go readInputContinuous()
 }
 
-func ReadInput() {
-	for {
-		os.Stdin.Read(buf)
-		Log().String("input", string(buf)).String("asBytes", fmt.Sprintf("%s", buf)).Msg("Received ")
-		DebugWriteString(fmt.Sprintf("Hello World: %s", buf))
+const (
+	ESCAPE byte = 27
+	ARROW  byte = 91
+	UP     byte = 65
+	DOWN   byte = 66
+	RIGHT  byte = 67
+	LEFT   byte = 68
+)
+
+var inputChan = make(chan byte)
+
+func ReadInput() (byte, bool) {
+	select {
+	case input := <-inputChan:
+		return input, true
+	default:
+		return 0, false
 	}
+}
+func readInputContinuous() {
+	for {
+		n, err := os.Stdin.Read(buf)
+		if err != nil {
+			panic(err)
+		}
+		if n == 3 {
+			if buf[0] != ESCAPE || buf[1] != ARROW {
+				continue
+			}
+			logArrowInput(buf[2])
+			inputChan <- buf[2]
+		}
+	}
+}
+
+func logArrowInput(input byte) {
+	if input < UP || input > LEFT {
+		panic(fmt.Errorf("logging an invalid arrow input %d (%c)", input, input))
+	}
+	debugStr := fmt.Sprintf("%d %d %d", ESCAPE, ARROW, input)
+	direction := ""
+	switch input {
+	case UP:
+		direction = "UP"
+	case DOWN:
+		direction = "DOWN"
+	case RIGHT:
+		direction = "RIGHT"
+	case LEFT:
+		direction = "LEFT"
+	}
+	Log().String("bytes", debugStr).String("dir", direction).Msg("Received Input")
+	DebugWriteString(fmt.Sprintf("Input: %s Dir: %s", debugStr, direction))
 }
 
 func Clean() {
