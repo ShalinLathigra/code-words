@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"sl.com/log"
 	"sl.com/render"
 	game "sl.com/snake"
+	"sl.com/terminal"
 )
 
 func Log() *log.LogBuilder { return log.CreateLogger("main") }
@@ -15,9 +15,11 @@ var frame int = 0
 
 func main() {
 	defer render.Clean()
+	defer terminal.Clean()
 	defer log.Clean()
 	var delta int64
 	lastTime := time.Now()
+	terminal.Init() // must happen first
 	render.Init()
 	game.Init(6)
 
@@ -26,7 +28,6 @@ func main() {
 	// GridFrame is implemented here, takes a reference to a Grid, and generates a Buffer
 	// Frames use the same rect math to determine when/what to render
 	// 	First in, last drawn
-	// grid := NewGrid(math.Add(render.Size, math.Up))
 
 	for {
 		delta = time.Since(lastTime).Milliseconds()
@@ -41,7 +42,7 @@ func main() {
 		tickDuration := time.Since(lastTime).Microseconds()
 		Log().Any("delta", delta).Any("us", tickDuration).Msg("Tick Duration")
 		render.ReDraw()
-		render.DebugWriteString(fmt.Sprintf("Hello World: %d", frame))
+		// terminal.DebugWriteString(fmt.Sprintf("Hello World: %d", frame))
 		frame = frame + 1
 		Log().Any("delta", delta).Any("us", time.Since(lastTime).Microseconds()-tickDuration).Msg("Render Duration")
 	}

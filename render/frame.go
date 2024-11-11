@@ -6,6 +6,7 @@ import (
 
 	"sl.com/log"
 	"sl.com/math"
+	"sl.com/terminal"
 )
 
 /*
@@ -179,14 +180,12 @@ var Root *BufferedFrame
 var dirty []byte
 
 func Init() {
-	InitTerminal()
-	Root = CreatePatternedBufferedFrame("Root", math.Rect{Size: math.Subtract(Size, math.Down)})
+	Root = CreatePatternedBufferedFrame("Root", math.Rect{Size: math.Subtract(terminal.Size, math.Down)})
 	dirty = make([]byte, Root.Aabb.Size.X*Root.Aabb.Size.Y)
 	Log().String("Root", Root.Aabb.String()).Msg("Init root render frame")
 }
 
 func Clean() {
-	CleanTerminal()
 	fmt.Println("")
 }
 
@@ -194,7 +193,7 @@ func ReDraw() {
 	// clear()
 	buf, box := render()
 	for y := 0; y < box.Size.Y; y++ {
-		cursorTo(0, y)
-		WriteBytes(buf[y*box.Size.X : (y+1)*box.Size.X])
+		terminal.CursorTo(0, y)
+		terminal.WriteBytes(buf[y*box.Size.X : (y+1)*box.Size.X])
 	}
 }

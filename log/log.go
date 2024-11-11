@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -31,7 +32,7 @@ type LogBuilder struct {
 var loggers = make(map[string]*LogBuilder)
 
 var allLogger = CreateLogger("all")
-
+var writeMutex = sync.Mutex{}
 var startTime = time.Now()
 
 func createWriter(key string, fileName string) (*os.File, *bufio.Writer) {
@@ -47,14 +48,16 @@ func createWriter(key string, fileName string) (*os.File, *bufio.Writer) {
 }
 
 func CreateLogger(mod string) *LogBuilder {
+	if logger, ok := loggers[mod]; ok {
+		return logger
+	}
 	file, writer := createWriter(fmt.Sprintf("%d-%d-%d", startTime.Hour(), startTime.Minute(), startTime.Second()), mod)
 	loggers[mod] = &LogBuilder{
-		make([]byte, MAX_LEN),
-		0,
-		[]byte(mod),
-		len(mod),
-		file,
-		writer,
+		bytes:        make([]byte, MAX_LEN),
+		module:       []byte(mod),
+		moduleLength: len(mod),
+		file:         file,
+		writer:       writer,
 	}
 	return loggers[mod].Log()
 }
@@ -125,6 +128,8 @@ func (lb *LogBuilder) appendBytes(chunk []byte, len int) {
 }
 
 func (lb *LogBuilder) logLine(chunk []byte, len int) {
+	writeMutex.Lock()
+	defer writeMutex.Unlock()
 	if _, err := lb.writer.Write(chunk[0:len]); err != nil {
 		panic(err)
 	} else {
@@ -137,6 +142,8 @@ func (lb *LogBuilder) logLine(chunk []byte, len int) {
 func Clean() {
 	// close files safely
 	// for each logger:
+	writeMutex.Lock()
+	defer writeMutex.Unlock()
 	for _, logger := range loggers {
 		if err := logger.writer.Flush(); err != nil {
 			fmt.Printf("Error clearing writer: %s", logger.module)
