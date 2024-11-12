@@ -14,6 +14,7 @@ var Right = Vec2{1, 0}
 var Up = Vec2{0, -1}
 var Down = Vec2{0, 1}
 var One = Vec2{1, 1}
+var Zero = Vec2{0, 0}
 
 func (v Vec2) String() string {
 	return fmt.Sprintf("(%d,%d)", v.X, v.Y)

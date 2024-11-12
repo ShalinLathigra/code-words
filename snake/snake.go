@@ -7,6 +7,7 @@ import (
 	"sl.com/log"
 	"sl.com/math"
 	"sl.com/render"
+	"sl.com/terminal"
 )
 
 func Log() *log.LogBuilder { return log.CreateLogger("game") }
@@ -27,13 +28,18 @@ type Grid struct {
 
 type SnakeCell struct {
 	math.Vec2
-	parent *SnakeCell
-	// child  *SnakeCell
+	prev *SnakeCell
+	next  *SnakeCell
+}
+
+func (c *SnakeCell) clone () *SnakeCell {
+	return &SnakeCell{Vec2: c.Vec2}
 }
 
 type Snake struct {
 	head *SnakeCell
 	tail *SnakeCell
+	current *SnakeCell
 	dir  math.Vec2
 }
 
@@ -90,15 +96,13 @@ func CreateSnake(grid *Grid, pos math.Vec2, len uint) Snake {
 		panic(fmt.Errorf("snake must have positive length: %d", len))
 	}
 	head := &SnakeCell{
-		Vec2: math.Vec2{
-			X: grid.Size.X / 2, Y: grid.Size.Y / 2,
-		},
+		Vec2: pos,
 	}
 	tail := head
 	snake := Snake{
 		head: head,
 		tail: tail,
-		dir:  math.Left,
+		dir:  math.Zero,
 	}
 	return snake
 }
@@ -111,10 +115,6 @@ func setTile(grid *Grid, at math.Vec2, state byte) {
 	if !math.VecContains(grid.Size, at) {
 		panic(fmt.Sprintf("setting out-of-bounds index: %s in %s", at, grid))
 	}
-	// do not override the head
-	if grid.tiles[at.Y][at.X] == SnakeHead {
-		return
-	}
 	grid.tiles[at.Y][at.X] = state
 }
 
@@ -123,32 +123,66 @@ var snake Snake
 
 func Init(insets math.Vec2) {
 	rect, ok := math.Shrink(math.Rect{Size: render.Root.Aabb.Size}, insets)
+	// rect should be odd on x axis
+	if rect.Size.X % 2 == 0 {
+		rect.Size.X += 1
+	}
 	if !ok {
 		panic("game area too small")
 	}
 	grid = NewGridFrame(rect)
-	snake = CreateSnake(&grid.Grid, math.Vec2{X: grid.Size.X / 2, Y: grid.Size.Y / 2}, 1)
+	snake = CreateSnake(&grid.Grid, math.Vec2{X: rect.Size.X / 2, Y: rect.Size.Y / 2}, 1)
+	setTile(&grid.Grid, math.Vec2{4*1,3}, Apple)
+	setTile(&grid.Grid, math.Vec2{4*2, 3}, Apple)
+	setTile(&grid.Grid, math.Vec2{4*3, 3}, Apple)
+	setTile(&grid.Grid, math.Vec2{4*4, 3}, Apple)
+	setTile(&grid.Grid, math.Vec2{4*5, 3}, Apple)
+	setTile(&grid.Grid, math.Vec2{4*6, 3}, Apple)
 	Log().String("grid", grid.String()).String("snake.head", snake.head.String()).Msg("Game Start")
 }
 
-func Tick() bool {
-	// UpdateBuffer grid
-	for cell := snake.tail; cell != nil; cell = cell.parent {
-		grid.tiles[cell.Y][cell.X] = Empty
-		if cell.parent == nil {
-			cell.Vec2 = math.Add(cell.Vec2, snake.dir)
-			if !math.VecContains(grid.Size, cell.Vec2) {
-				// If here, die
-				die()
-			}
-			setTile(&grid.Grid, cell.Vec2, SnakeHead)
-		} else {
-			cell.X, cell.Y = cell.parent.X, cell.parent.Y
-			setTile(&grid.Grid, cell.Vec2, SnakeBody)
+func Tick(_ int64, frame int) bool {
+	lastPos := snake.head.Vec2
+	snake.head.Vec2 = math.Add(snake.head.Vec2, snake.dir)
+	if !math.VecContains(grid.Size, snake.head.Vec2) {
+		// If here, die
+		terminal.DebugWriteString("Out of bounds")
+		die()
+	}
+	switch grid.tiles[snake.head.Y][snake.head.X] {
+	case Apple:
+		extendSnake(&snake)
+	case SnakeBody:
+		terminal.DebugWriteString(fmt.Sprintf("Hit yourself at %s", snake.head.Vec2))
+	default:
+	}
+	// update the grid display
+	if snake.current == nil {
+		setTile(&grid.Grid, lastPos, Empty)
+	} else {
+		// need to move snake.current to lastPos
+		setTile(&grid.Grid, snake.current.Vec2, Empty)
+		setTile(&grid.Grid, lastPos, SnakeBody)
+		snake.current.Vec2 = lastPos
+		snake.current = snake.current.next
+		if snake.current == nil {
+			snake.current = snake.head.next
 		}
 	}
+	setTile(&grid.Grid, snake.head.Vec2, SnakeHead)
+
 	grid.UpdateBuffer()
 	return true
+}
+
+func extendSnake(s *Snake) {
+	newCell := s.tail.clone()
+	s.tail.next = newCell
+	newCell.prev = s.tail
+	s.tail = newCell
+	if s.current == nil {
+		s.current = s.tail
+	}
 }
 
 func HandleInputByte(b byte) {
@@ -158,8 +192,8 @@ func HandleInputByte(b byte) {
 	case 66:
 		snake.dir = math.Down
 	case 67:
-		snake.dir = math.Right
+		snake.dir = math.Scale(math.Right, 2)
 	case 68:
-		snake.dir = math.Left
+		snake.dir = math.Scale(math.Left, 2)
 	}
 }
