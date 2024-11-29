@@ -19,14 +19,15 @@ const (
 )
 
 func main() {
+	var delta int64
 	defer render.Clean()
 	defer terminal.Clean()
 	defer log.Clean()
-	var delta int64
+	Log().Msg("Initializing game")
 	lastTime := time.Now()
 	terminal.Init() // must happen first
 	render.Init()
-	game.Init(math.Vec2{12, 3})
+	game.Init(math.Vec2{12, 3}, 8, FPS)
 
 	for {
 		delta = time.Since(lastTime).Milliseconds()

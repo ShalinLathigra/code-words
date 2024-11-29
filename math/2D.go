@@ -2,6 +2,7 @@ package math
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 type Vec2 struct {
@@ -79,4 +80,12 @@ func Overlap(rect Rect, other Rect) (inter Rect, ok bool) {
 		return inter, true
 	}
 	return Rect{}, false
+}
+
+func PointWithin(rect Rect) Vec2 {
+	if rect.Size.X <= 0 || rect.Size.Y <= 0 {
+		panic(fmt.Sprintf("cannot find point within empty rect %s", rect))
+	}
+	x, y := rand.Int()%rect.Size.X, rand.Int()%rect.Size.Y
+	return Add(rect.Vec2, Vec2{x, y})
 }

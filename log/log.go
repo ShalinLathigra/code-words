@@ -49,7 +49,7 @@ func createWriter(key string, fileName string) (*os.File, *bufio.Writer) {
 
 func CreateLogger(mod string) *LogBuilder {
 	if logger, ok := loggers[mod]; ok {
-		return logger
+		return logger.Log()
 	}
 	file, writer := createWriter(fmt.Sprintf("%d-%d-%d", startTime.Hour(), startTime.Minute(), startTime.Second()), mod)
 	loggers[mod] = &LogBuilder{
@@ -64,7 +64,7 @@ func CreateLogger(mod string) *LogBuilder {
 
 func (lb *LogBuilder) Log() *LogBuilder {
 	lb.length = 0
-	lb.appendBytes([]byte("{\"mod\":\""), 9)
+	lb.appendBytes([]byte("{\"mod\":\""), 7)
 	lb.appendBytes(lb.module, lb.moduleLength)
 	lb.appendBytes([]byte("\""), 1)
 	return lb
@@ -103,10 +103,8 @@ func (lb *LogBuilder) Any(key string, val any) *LogBuilder {
 func (lb *LogBuilder) Msg(msg string) {
 	lb.String("msg", msg)
 	lb.appendBytes([]byte("}\n"), 2)
-	lb.length += 2
 	lb.logLine(lb.bytes, lb.length)
 	allLogger.logLine(lb.bytes, lb.length)
-	lb.length = 0
 }
 
 func (lb *LogBuilder) appendKey(key string) {
