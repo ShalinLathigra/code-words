@@ -23,7 +23,7 @@ Special case things w/ transparency enabled will not overwrite layers below if t
     Linkedlist of cell indices represents the snake
     Render function will iterate over that grid to assemble the byte array
 
-
+## Future Plans
 new plan for the game. Snake text editor
 "Apples" define a byte or rune that is used for display
     Could also use ghostly "'" characters to delineate blank space, newline, etc.
@@ -66,3 +66,29 @@ Word + character multipliers for adding a certain section
 
 Maybe switch to something w/ rasterized graphics to make it easier to display complex behaviour
 Add support for requesting nearest apple of type to point
+
+
+
+## System Design
+
+This is meant to be a lobby based experience. What sort of modes should be available?
+It'd be cool to set up a P2P mode for just terminals and a separate server based mode for doing a web based model so I could get used to HTML, HTTP, and general web animations
+
+Step one, simple TCP connection between two terminals
+    // Was able to set up a three connections with multiple messages being sent and received between them
+    // next part here is going to be formalizing the server/client setup so I don't need to do it myself every time
+    // Then I'll need to break down the client logic vs the server logic into something that can be kicked off independently
+    // Last thing is going to be a convenience thing that will fire off a server and multiple clients and gather the logs from them all.
+        // Maybe it'll just work and append nicely. We'll see...
+Step two, One to many connection with a single computer serving as the "server" / main node, then other clients that are able to connect and say hello
+Step three, set up flows for initiating a new connection and validating messages received (req/ack, rep/ack)
+    // May well encounter issues, but will roll with this for at least v1
+Step four, define requirements for messaging protocol based off of this
+    // Want to minimize overhead + size of messages, the rest I don't know
+Step five, testing logic for sending and receiving bulk messages + handling multiple messages concurrently
+    // Don't need to process concurrently, just need to handle it gracefully
+Step six, first pass logic at actually sending and receiving state
+    // What sort of metrics do I care about?
+    // This is all on local network, so not worried about sending a lot of packets
+    // Main concern is ensuring that we are able to communicate quickly and parse things out in a minimal amount of time
+Step seven, Client side rendering, given a state packet, parse it out and colour it in

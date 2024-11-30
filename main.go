@@ -6,6 +6,7 @@ import (
 	"sl.com/log"
 	"sl.com/math"
 	"sl.com/render"
+	"sl.com/server"
 	game "sl.com/snake"
 	"sl.com/terminal"
 )
@@ -19,6 +20,8 @@ const (
 )
 
 func main() {
+	server.Test()
+	return
 	var delta int64
 	defer render.Clean()
 	defer terminal.Clean()
